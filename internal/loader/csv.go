@@ -11,7 +11,6 @@ import (
 	"github.com/example/raspberry-api/internal/domain"
 )
 
-// LoadFile lê o CSV (separador ';', com cabeçalho) e devolve os filmes.
 func LoadFile(path string) ([]domain.Movie, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -21,8 +20,6 @@ func LoadFile(path string) ([]domain.Movie, error) {
 	return Parse(f)
 }
 
-// Parse lê filmes de qualquer io.Reader. Linhas inválidas abortam a carga
-// com o número da linha, para falhar cedo e de forma explícita.
 func Parse(r io.Reader) ([]domain.Movie, error) {
 	cr := csv.NewReader(r)
 	cr.Comma = ';'
