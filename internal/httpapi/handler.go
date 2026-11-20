@@ -13,7 +13,6 @@ import (
 	"github.com/example/raspberry-api/internal/service"
 )
 
-// MovieStore é a dependência do handler (facilita testes).
 type MovieStore interface {
 	List(ctx context.Context, f domain.Filter) ([]domain.Movie, error)
 	GetByID(ctx context.Context, id int64) (domain.Movie, error)
@@ -36,7 +35,6 @@ func New(store MovieStore, log *slog.Logger) http.Handler {
 	return mux
 }
 
-// GET /movies?year=1980&winner=true
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	var f domain.Filter
 	if v := r.URL.Query().Get("year"); v != "" {
@@ -64,7 +62,6 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, movies)
 }
 
-// GET /movies/{id}
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
@@ -83,7 +80,6 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET /producers/intervals
 func (h *Handler) intervals(w http.ResponseWriter, r *http.Request) {
 	winner := true
 	winners, err := h.store.List(r.Context(), domain.Filter{Winner: &winner})

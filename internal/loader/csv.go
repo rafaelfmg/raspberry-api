@@ -11,6 +11,8 @@ import (
 	"github.com/example/raspberry-api/internal/domain"
 )
 
+var requiredColumns = []string{"year", "title", "studios", "producers", "winner"}
+
 func LoadFile(path string) ([]domain.Movie, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -27,37 +29,86 @@ func Parse(r io.Reader) ([]domain.Movie, error) {
 	cr.FieldsPerRecord = -1
 	cr.TrimLeadingSpace = true
 
-	if _, err := cr.Read(); err != nil { // cabeçalho
+	head, err := cr.Read()
+	if err != nil {
 		return nil, fmt.Errorf("lendo cabeçalho: %w", err)
+	}
+	idx, err := mapHeader(head)
+	if err != nil {
+		return nil, err
 	}
 
 	var movies []domain.Movie
-	for line := 2; ; line++ {
+	for {
 		rec, err := cr.Read()
 		if err == io.EOF {
 			break
 		}
+		line, _ := cr.FieldPos(0)
 		if err != nil {
 			return nil, fmt.Errorf("linha %d: %w", line, err)
 		}
-		if len(rec) < 4 {
-			return nil, fmt.Errorf("linha %d: esperado ao menos 4 colunas, obtido %d", line, len(rec))
+
+		cell := func(col string) string {
+			i := idx[col]
+			if i >= len(rec) {
+				return ""
+			}
+			return strings.TrimSpace(rec[i])
 		}
-		year, err := strconv.Atoi(strings.TrimSpace(rec[0]))
+
+		if allBlank(rec) {
+			continue
+		}
+		year, err := strconv.Atoi(cell("year"))
 		if err != nil {
-			return nil, fmt.Errorf("linha %d: ano inválido %q", line, rec[0])
+			return nil, fmt.Errorf("linha %d: ano inválido %q", line, cell("year"))
 		}
-		winner := false
-		if len(rec) > 4 {
-			winner = strings.EqualFold(strings.TrimSpace(rec[4]), "yes")
+		winner, err := parseWinner(cell("winner"))
+		if err != nil {
+			return nil, fmt.Errorf("linha %d: %w", line, err)
 		}
 		movies = append(movies, domain.Movie{
 			Year:      year,
-			Title:     strings.TrimSpace(rec[1]),
-			Studios:   strings.TrimSpace(rec[2]),
-			Producers: strings.TrimSpace(rec[3]),
+			Title:     cell("title"),
+			Studios:   cell("studios"),
+			Producers: cell("producers"),
 			Winner:    winner,
 		})
 	}
 	return movies, nil
+}
+
+func mapHeader(head []string) (map[string]int, error) {
+	idx := map[string]int{}
+	for i, h := range head {
+		h = strings.TrimPrefix(h, "\ufeff") // BOM
+		idx[strings.ToLower(strings.TrimSpace(h))] = i
+	}
+	for _, c := range requiredColumns {
+		if _, ok := idx[c]; !ok {
+			return nil, fmt.Errorf("cabeçalho sem a coluna obrigatória %q", c)
+		}
+	}
+	return idx, nil
+}
+
+func parseWinner(s string) (bool, error) {
+	switch strings.ToLower(s) {
+	case "yes":
+		return true, nil
+	case "", "no":
+		return false, nil
+	default:
+		return false, fmt.Errorf("valor inválido para winner: %q (esperado 'yes', 'no' ou vazio)", s)
+	}
+}
+
+func allBlank(rec []string) bool {
+	for _, f := range rec {
+		if strings.TrimSpace(f) != "" {
+			return false
+		}
+	}
+	return true
 }
