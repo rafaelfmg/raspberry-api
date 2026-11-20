@@ -1,3 +1,5 @@
+// Package app monta a aplicação (banco em memória + carga do CSV + HTTP),
+// permitindo que o mesmo wiring seja usado pelo main e pelos testes de integração.
 package app
 
 import (

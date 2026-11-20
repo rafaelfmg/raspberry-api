@@ -1,6 +1,5 @@
 package domain
 
-
 type Movie struct {
 	ID        int64  `json:"id"`
 	Year      int    `json:"year"`
@@ -10,12 +9,10 @@ type Movie struct {
 	Winner    bool   `json:"winner"`
 }
 
-
 type Filter struct {
 	Year   *int
 	Winner *bool
 }
-
 
 type Interval struct {
 	Producer     string `json:"producer"`
@@ -23,7 +20,6 @@ type Interval struct {
 	PreviousWin  int    `json:"previousWin"`
 	FollowingWin int    `json:"followingWin"`
 }
-
 
 type IntervalsResponse struct {
 	Min []Interval `json:"min"`
