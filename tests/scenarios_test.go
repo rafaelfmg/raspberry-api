@@ -109,8 +109,8 @@ func TestIntervals_Scenarios(t *testing.T) {
 			wantMax: []domain.Interval{iv("D", 20, 1960, 1980), iv("C", 20, 1980, 2000)},
 		},
 		{
-			name: "tres premios: intervalos consecutivos, nao entre extremos",
-			csv:  rows(row(1990, "A", "yes"), row(1991, "A", "yes"), row(2010, "A", "yes")),
+			name:    "tres premios: intervalos consecutivos, nao entre extremos",
+			csv:     rows(row(1990, "A", "yes"), row(1991, "A", "yes"), row(2010, "A", "yes")),
 			wantMin: []domain.Interval{iv("A", 1, 1990, 1991)},
 			wantMax: []domain.Interval{iv("A", 19, 1991, 2010)},
 		},
@@ -178,8 +178,8 @@ func TestIntervals_Scenarios(t *testing.T) {
 			wantMax: []domain.Interval{iv("A", 0, 2000, 2000)},
 		},
 		{
-			name: "mesmo produtor em min e max",
-			csv:  rows(row(2000, "A", "yes"), row(2001, "A", "yes"), row(2030, "A", "yes")),
+			name:    "mesmo produtor em min e max",
+			csv:     rows(row(2000, "A", "yes"), row(2001, "A", "yes"), row(2030, "A", "yes")),
 			wantMin: []domain.Interval{iv("A", 1, 2000, 2001)},
 			wantMax: []domain.Interval{iv("A", 29, 2001, 2030)},
 		},
@@ -209,8 +209,6 @@ func TestIntervals_Scenarios(t *testing.T) {
 	}
 }
 
-// Formatos de arquivo diferentes (BOM, CRLF, colunas em outra ordem, linhas em
-// branco, linha sem a coluna winner) devem produzir os mesmos dados.
 func TestLoader_FormatVariations(t *testing.T) {
 	csv := "\ufeffWinner;Producers;YEAR;Studios;Title\r\n" +
 		"YES; A ;2000;S;T1\r\n" +
@@ -240,8 +238,6 @@ func TestLoader_FormatVariations(t *testing.T) {
 	}
 }
 
-// Dados inválidos devem impedir a inicialização com erro claro, em vez de
-// produzir resultados silenciosamente incorretos.
 func TestApp_FailsOnInvalidData(t *testing.T) {
 	tests := []struct {
 		name, csv, wantErr string
@@ -270,16 +266,12 @@ func TestApp_FailsOnInvalidData(t *testing.T) {
 	}
 }
 
-// --- Verificação por oráculo independente -----------------------------------
-
 type genMovie struct {
 	year      int
 	producers []string
 	winner    bool
 }
 
-// oracle é uma implementação independente (e deliberadamente simples) da regra,
-// usada para comparar com a resposta da API em datasets gerados aleatoriamente.
 func oracle(movies []genMovie) domain.IntervalsResponse {
 	years := map[string][]int{}
 	for _, m := range movies {
